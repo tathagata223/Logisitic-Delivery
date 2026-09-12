@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Logistics Dashboard</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #4f46e5;
+            color: white;
+            padding: 20px 30px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        .message {
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h3 {
+            margin: 0 0 10px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .section h2 {
+            margin-top: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid #6366f1;
+            border-color: transparent;
+        }
+
+        button {
+            padding: 11px 18px;
+            border: 0;
+            border-radius: 7px;
+            background: #4f46e5;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        .progress {
+            width: 100%;
+            height: 18px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #4f46e5;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .Pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .Assigned {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .In-Transit {
+            background: #ede9fe;
+            color: #5b21b6;
+        }
+
+        .Delivered {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .Cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .update-form {
+            display: flex;
+            gap: 7px;
+        }
+
+        .update-form select {
+            min-width: 120px;
+        }
+
+        .no-result {
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        @media (max-width: 1100px) {
+
+            .summary {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+        }
+
+        @media (max-width: 700px) {
+
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .update-form {
+                flex-direction: column;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <header>
+
+        <h1>
+            Logistics Delivery Dashboard
+        </h1>
+
+    </header>
+
+
+    <main class="container">
+
+
+        <!-- MESSAGES -->
+
+        {% if error %}
+
+        <div class="message error">
+            {{ error }}
+        </div>
+
+        {% endif %}
+
+
+        {% if success %}
+
+        <div class="message success">
+            {{ success }}
+        </div>
+
+        {% endif %}
+
+
+        <!-- SUMMARY -->
+
+        <section class="summary">
+
+
+            <div class="card">
+
+                <h3>
+                    Total Deliveries
+                </h3>
+
+                <p>
+                    {{ total }}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Pending
+                </h3>
+
+                <p>
+                    {{ pending }}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Assigned
+                </h3>
+
+                <p>
+                    {{ assigned }}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    In Transit
+                </h3>
+
+                <p>
+                    {{ in_transit }}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Delivered
+                </h3>
+
+                <p>
+                    {{ delivered }}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Available Vehicles
+                </h3>
+
+                <p>
+                    {{ available_vehicles }}
+                </p>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- DELIVERY COMPLETION -->
+
+        <section class="section">
+
+            <h2>
+                Delivery Completion
+            </h2>
+
+            <p>
+                {{ completion }}% completed
+            </p>
+
+            <div class="progress">
+
+                <div
+                    class="progress-bar"
+                    style="width: {{ completion }}%;">
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ADD DELIVERY -->
+
+        <section class="section">
+
+            <h2>
+                Add New Delivery
+            </h2>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('add_delivery') }}">
+
+
+                <div class="form-grid">
+
+
+                    <div>
+
+                        <label for="delivery_id">
+                            Delivery ID
+                        </label>
+
+                        <input
+                            id="delivery_id"
+                            name="delivery_id"
+                            type="text"
+                            placeholder="D001"
+                            required>
+
+                    </div>
+
+
+                    <div>
+
+                        <label for="customer">
+                            Customer Name
+                        </label>
+
+                        <input
+                            id="customer"
+                            name="customer"
+                            type="text"
+                            placeholder="Customer Name"
+                            required>
+
+                    </div>
+
+
+                    <div>
+
+                        <label for="contact">
+                            Customer Contact
+                        </label>
+
+                        <input
+                            id="contact"
+                            name="contact"
+                            type="text"
+                            placeholder="Phone Number"
+                            required>
+
+                    </div>
+
+
+                    <div>
+
+                        <label for="pickup">
+                            Pickup Location
+                        </label>
+
+                        <input
+                            id="pickup"
+                            name="pickup"
+                            type="text"
+                            placeholder="Pickup Location"
+                            required>
+
+                    </div>
+
+
+                    <div>
+
+                        <label for="delivery_location">
+                            Delivery Location
+                        </label>
+
+                        <input
+                            id="delivery_location"
+                            name="delivery_location"
+                            type="text"
+                            placeholder="Delivery Location"
+                            required>
+
+                    </div>
+
+
+                    <div>
+
+                        <label for="package">
+                            Package Description
+                        </label>
+
+                        <input
+                            id="package"
+                            name="package"
+                            type="text"
+                            placeholder="Package Description"
+                            required>
+
+                    </div>
+
+
+                    <div>
+
+                        <label for="vehicle">
+                            Assigned Vehicle
+                        </label>
+
+                        <select
+                            id="vehicle"
+                            name="vehicle"
+                            required>
+
+                            <option value="">
+                                Select Vehicle
+                            </option>
+
+                            {% for vehicle in vehicles %}
+
+                            <option value="{{ vehicle.id }}">
+
+                                {{ vehicle.id }}
+                                -
+                                {{ vehicle.number }}
+
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div>
+
+                        <label for="driver">
+                            Assigned Driver
+                        </label>
+
+                        <input
+                            id="driver"
+                            name="driver"
+                            type="text"
+                            placeholder="Driver Name"
+                            required>
+
+                    </div>
+
+
+                    <div class="full">
+
+                        <button type="submit">
+                            Add Delivery
+                        </button>
+
+                    </div>
+
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- DELIVERY SEARCH -->
+
+        <section class="section">
+
+            <h2>
+                Delivery Search & Filter
+            </h2>
+
+
+            <form
+                method="GET"
+                action="{{ url_for('dashboard') }}">
+
+
+                <div class="search-box">
+
+
+                    <input
+                        name="search"
+                        type="text"
+                        value="{{ search }}"
+                        placeholder="Search Delivery ID or Customer Name">
+
+
+                    <select name="status">
+
+                        <option value="">
+                            All Status
+                        </option>
+
+                        <option
+                            value="Pending"
+                            {% if status == "Pending" %}selected{% endif %}>
+                            Pending
+                        </option>
+
+                        <option
+                            value="Assigned"
+                            {% if status == "Assigned" %}selected{% endif %}>
+                            Assigned
+                        </option>
+
+                        <option
+                            value="In Transit"
+                            {% if status == "In Transit" %}selected{% endif %}>
+                            In Transit
+                        </option>
+
+                        <option
+                            value="Delivered"
+                            {% if status == "Delivered" %}selected{% endif %}>
+                            Delivered
+                        </option>
+
+                        <option
+                            value="Cancelled"
+                            {% if status == "Cancelled" %}selected{% endif %}>
+                            Cancelled
+                        </option>
+
+                    </select>
+
+
+                    <button type="submit">
+                        Search
+                    </button>
+
+
+                </div>
+
+            </form>
+
+
+            {% if deliveries %}
+
+
+            <div style="overflow-x:auto;">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Delivery ID
+                            </th>
+
+                            <th>
+                                Customer
+                            </th>
+
+                            <th>
+                                Contact
+                            </th>
+
+                            <th>
+                                Pickup
+                            </th>
+
+                            <th>
+                                Delivery
+                            </th>
+
+                            <th>
+                                Package
+                            </th>
+
+                            <th>
+                                Vehicle
+                            </th>
+
+                            <th>
+                                Driver
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Update
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+
+                        {% for d in deliveries %}
+
+
+                        <tr>
+
+
+                            <td>
+                                {{ d.id }}
+                            </td>
+
+
+                            <td>
+                                {{ d.customer }}
+                            </td>
+
+
+                            <td>
+                                {{ d.contact }}
+                            </td>
+
+
+                            <td>
+                                {{ d.pickup }}
+                            </td>
+
+
+                            <td>
+                                {{ d.delivery_location }}
+                            </td>
+
+
+                            <td>
+                                {{ d.package }}
+                            </td>
+
+
+                            <td>
+                                {{ d.vehicle }}
+                            </td>
+
+
+                            <td>
+                                {{ d.driver }}
+                            </td>
+
+
+                            <td>
+
+                                <span
+                                    class="status {{ d.status|replace(' ', '-') }}">
+
+                                    {{ d.status }}
+
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+
+                                <form
+                                    class="update-form"
+                                    method="POST"
+                                    action="{{ url_for('update_status', delivery_id=d.id) }}">
+
+
+                                    <select name="status">
+
+
+                                        <option
+                                            value="Pending"
+                                            {% if d.status == "Pending" %}selected{% endif %}>
+
+                                            Pending
+
+                                        </option>
+
+
+                                        <option
+                                            value="Assigned"
+                                            {% if d.status == "Assigned" %}selected{% endif %}>
+
+                                            Assigned
+
+                                        </option>
+
+
+                                        <option
+                                            value="In Transit"
+                                            {% if d.status == "In Transit" %}selected{% endif %}>
+
+                                            In Transit
+
+                                        </option>
+
+
+                                        <option
+                                            value="Delivered"
+                                            {% if d.status == "Delivered" %}selected{% endif %}>
+
+                                            Delivered
+
+                                        </option>
+
+
+                                        <option
+                                            value="Cancelled"
+                                            {% if d.status == "Cancelled" %}selected{% endif %}>
+
+                                            Cancelled
+
+                                        </option>
+
+
+                                    </select>
+
+
+                                    <button type="submit">
+                                        Update
+                                    </button>
+
+
+                                </form>
+
+
+                            </td>
+
+
+                        </tr>
+
+
+                        {% endfor %}
+
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            {% else %}
+
+
+            <div class="no-result">
+
+                No matching delivery record found.
+
+            </div>
+
+
+            {% endif %}
+
+
+        </section>
+
+
+        <!-- VEHICLES -->
+
+        <section class="section">
+
+
+            <h2>
+                Vehicles
+            </h2>
+
+
+            <form
+                method="GET"
+                action="{{ url_for('dashboard') }}">
+
+
+                <div class="search-box">
+
+
+                    <input
+                        name="vehicle_search"
+                        type="text"
+                        value="{{ vehicle_search }}"
+                        placeholder="Search Vehicle ID or Vehicle Number">
+
+
+                    <button type="submit">
+                        Search
+                    </button>
+
+
+                </div>
+
+            </form>
+
+
+            {% if vehicles %}
+
+
+            <div style="overflow-x:auto;">
+
+                <table>
+
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Vehicle ID
+                            </th>
+
+                            <th>
+                                Vehicle Type
+                            </th>
+
+                            <th>
+                                Vehicle Number
+                            </th>
+
+                            <th>
+                                Driver
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+
+                        {% for v in vehicles %}
+
+
+                        <tr>
+
+                            <td>
+                                {{ v.id }}
+                            </td>
+
+                            <td>
+                                {{ v.type }}
+                            </td>
+
+                            <td>
+                                {{ v.number }}
+                            </td>
+
+                            <td>
+                                {{ v.driver }}
+                            </td>
+
+                        </tr>
+
+
+                        {% endfor %}
+
+
+                    </tbody>
+
+
+                </table>
+
+            </div>
+
+
+            {% else %}
+
+
+            <div class="no-result">
+
+                No matching vehicle record found.
+
+            </div>
+
+
+            {% endif %}
+
+
+        </section>
+
+
+    </main>
+
+</body>
+
+</html>
